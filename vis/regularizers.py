@@ -74,7 +74,7 @@ class TotalVariation(Loss):
 
 class LPNorm(Loss):
 
-    def __init__(self, img_input, p=6.):
+    def __init__(self, img_input, seed_input=None,p=6.):
         """
         Builds a L-p norm function. This regularizer encourages the intensity of pixels to stay bounded.
             i.e., prevents pixels from taking on very large values.
@@ -90,12 +90,16 @@ class LPNorm(Loss):
         self.name = "L-{} Norm Loss".format(p)
         self.p = p
         self.img = img_input
+        self.seed_input = seed_input
 
     def build_loss(self):
         # Infinity norm
         if np.isinf(self.p):
             value = K.max(self.img)
         else:
-            value = K.pow(K.sum(K.pow(K.abs(self.img), self.p)), 1. / self.p)
+            if self.seed_input is None:
+                value = K.pow(K.sum(K.pow(K.abs(self.img), self.p)), 1. / self.p)
+            else:
+                value = K.pow(K.sum(K.pow(K.abs(self.img), self.p)), 1. / self.p) + K.pow(K.sum(K.pow(K.abs(self.seed_input), self.p)), 1. / self.p) 
 
         return normalize(self.img, value)
